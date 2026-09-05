@@ -8,21 +8,29 @@ pub const SYSTEM_INFO: &str = "/system/info";
 pub const SYSTEM_STATS: &str = "/system/stats";
 pub const SYSTEM_HEALTH: &str = "/system/health";
 
-// ===== 容器 =====
-pub const CONTAINERS: &str = "/containers";
-pub const CONTAINER_DETAIL: &str = "/containers/:id";
-pub const CONTAINER_START: &str = "/containers/:id/start";
-pub const CONTAINER_STOP: &str = "/containers/:id/stop";
-pub const CONTAINER_RESTART: &str = "/containers/:id/restart";
-pub const CONTAINER_LOGS: &str = "/containers/:id/logs";
+// ===== 应用注册与发现 =====
+pub const REGISTER: &str = "/apps/register";
+pub const UNREGISTER: &str = "/apps/unregister";
+pub const HEARTBEAT: &str = "/apps/heartbeat";
+pub const APPS_LIST: &str = "/apps";
+pub const APP_DETAIL: &str = "/apps/:id";
+pub const APP_DISCOVER: &str = "/apps/:id/discover";
 
-// ===== 商店 =====
-pub const STORE_SOURCES: &str = "/store/sources";
-pub const STORE_SOURCE_REFRESH: &str = "/store/sources/:id/refresh";
+// ===== 应用管理（商店安装的应用） =====
 pub const STORE_APPS: &str = "/store/apps";
 pub const STORE_APP_DETAIL: &str = "/store/apps/:id";
 pub const STORE_APP_INSTALL: &str = "/store/apps/:id/install";
 pub const STORE_APP_UNINSTALL: &str = "/store/apps/:id/uninstall";
+pub const STORE_APP_START: &str = "/store/apps/:id/start";
+pub const STORE_APP_STOP: &str = "/store/apps/:id/stop";
+pub const STORE_APP_RESTART: &str = "/store/apps/:id/restart";
+pub const STORE_APP_LOGS: &str = "/store/apps/:id/logs";
+pub const STORE_SOURCES: &str = "/store/sources";
+pub const STORE_SOURCE_REFRESH: &str = "/store/sources/:id/refresh";
+
+// ===== 反向代理 =====
+/// 应用代理前缀：/app/{id}/*
+pub const APP_PROXY_PREFIX: &str = "/app";
 
 // ===== 文件 =====
 pub const FILES_LIST: &str = "/files/list";
@@ -32,10 +40,10 @@ pub const FILES_MKDIR: &str = "/files/mkdir";
 pub const FILES_DELETE: &str = "/files/delete";
 pub const FILES_RENAME: &str = "/files/rename";
 
-/// WebSocket 消息类型
+// ===== WebSocket =====
+pub const WS: &str = "/ws";
+
+/// WebSocket 消息类型（已迁移到 events.rs，此处保留兼容引用）
 pub mod ws {
-    pub const APP_INSTALL_PROGRESS: &str = "app_install_progress";
-    pub const APP_STATUS_CHANGED: &str = "app_status_changed";
-    pub const CONTAINER_LOG: &str = "container_log";
-    pub const SYSTEM_STATS: &str = "system_stats";
+    pub use crate::events::*;
 }

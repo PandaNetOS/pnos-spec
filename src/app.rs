@@ -1,4 +1,4 @@
-//! 应用描述模型（app.yml）
+//! 应用描述模型（app.yml）— 二进制部署格式
 
 use serde::{Deserialize, Serialize};
 
@@ -59,6 +59,95 @@ fn default_retries() -> u32 {
     3
 }
 
+/// UI 类型
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum WebUiType {
+    /// iframe 嵌入
+    Iframe,
+    /// pnos-web 原生组件
+    Native,
+}
+
+/// Web UI 配置
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebConfig {
+    /// 是否启用 Web UI
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    /// UI 类型
+    #[serde(default = "default_web_type")]
+    pub r#type: WebUiType,
+    /// UI 根路径
+    #[serde(default = "default_path")]
+    pub path: String,
+    /// 原生 UI 组件包地址（type=native 时必填）
+    #[serde(default)]
+    pub ui_package: Option<String>,
+}
+
+fn default_true() -> bool {
+    true
+}
+fn default_web_type() -> WebUiType {
+    WebUiType::Iframe
+}
+fn default_path() -> String {
+    "/".to_string()
+}
+
+/// 二进制下载配置
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BinaryConfig {
+    /// 下载地址
+    pub download_url: String,
+    /// SHA256 校验（可选）
+    #[serde(default)]
+    pub sha256: Option<String>,
+    /// 解压后的可执行文件名
+    pub binary_name: String,
+    /// 安装目录（支持变量 {{app_data}}）
+    #[serde(default = "default_install_dir")]
+    pub install_dir: String,
+}
+
+fn default_install_dir() -> String {
+    "{{app_data}}/bin".to_string()
+}
+
+/// 运行配置
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunConfig {
+    /// 启动参数
+    #[serde(default)]
+    pub args: Vec<String>,
+    /// 环境变量
+    #[serde(default)]
+    pub env: Vec<EnvVar>,
+    /// 监听端口
+    pub port: u16,
+    /// 工作目录（支持变量）
+    #[serde(default = "default_working_dir")]
+    pub working_dir: String,
+    /// 重启策略：always / unless-stopped / no
+    #[serde(default = "default_restart")]
+    pub restart: String,
+}
+
+fn default_working_dir() -> String {
+    "{{app_data}}".to_string()
+}
+fn default_restart() -> String {
+    "unless-stopped".to_string()
+}
+
+/// 环境变量
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnvVar {
+    pub name: String,
+    pub value: String,
+}
+
 /// 应用描述清单（对应 app.yml）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppManifest {
@@ -84,66 +173,29 @@ pub struct AppManifest {
     /// 标签
     #[serde(default)]
     pub tags: Vec<String>,
-
-    /// Docker 镜像
-    pub image: String,
-
-    /// 端口映射
+    /// 二进制下载配置
+    pub binary: BinaryConfig,
+    /// 运行配置
+    pub run: RunConfig,
+    /// Web UI 配置
     #[serde(default)]
-    pub ports: Vec<crate::container::PortMapping>,
-
-    /// 卷映射
-    #[serde(default)]
-    pub volumes: Vec<crate::container::VolumeMount>,
-
-    /// 环境变量
-    #[serde(default)]
-    pub env: Vec<crate::container::EnvVar>,
-
-    /// 设备映射
-    #[serde(default)]
-    pub devices: Vec<String>,
-
-    /// 网络名
-    #[serde(default = "default_network")]
-    pub network: String,
-
-    /// 重启策略
-    #[serde(default = "default_restart")]
-    pub restart: String,
-
-    /// 是否特权模式
-    #[serde(default)]
-    pub privileged: bool,
-
+    pub web: Option<WebConfig>,
     /// 健康检查
     #[serde(default)]
     pub health_check: Option<HealthCheck>,
-
     /// 依赖的应用 id 列表
     #[serde(default)]
     pub depends_on: Vec<String>,
 }
 
-fn default_network() -> String {
-    "pnos-net".to_string()
-}
-fn default_restart() -> String {
-    "unless-stopped".to_string()
-}
-
 impl AppManifest {
-    /// 容器名：pnos-app-{id}
-    pub fn container_name(&self) -> String {
+    /// 进程名：pnos-app-{id}
+    pub fn process_name(&self) -> String {
         format!("pnos-app-{}", self.id)
     }
 
-    /// 容器标签
-    pub fn labels(&self) -> Vec<(String, String)> {
-        vec![
-            ("io.pnos.managed".to_string(), "true".to_string()),
-            ("io.pnos.app.id".to_string(), self.id.clone()),
-            ("io.pnos.version".to_string(), self.version.clone()),
-        ]
+    /// 数据目录：{{app_data}}/{id}
+    pub fn data_dir(&self) -> String {
+        format!("{{{{app_data}}}}/{}", self.id)
     }
 }

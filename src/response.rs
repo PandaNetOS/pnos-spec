@@ -33,7 +33,7 @@ impl<T> ApiResponse<T> {
         }
     }
 
-    pub fn error(err: &PnosError) -> ApiResponse<()> {
+    pub fn error(err: &PnosError) -> ApiResponse<T> {
         ApiResponse {
             code: err.code().code(),
             message: err.message(),
@@ -42,7 +42,7 @@ impl<T> ApiResponse<T> {
         }
     }
 
-    pub fn error_code(code: ErrorCode, message: impl Into<String>) -> ApiResponse<()> {
+    pub fn error_code(code: ErrorCode, message: impl Into<String>) -> ApiResponse<T> {
         ApiResponse {
             code: code.code(),
             message: message.into(),

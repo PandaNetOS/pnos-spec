@@ -2,7 +2,7 @@
 name = "pnos"
 version = "0.1.0"
 edition = "2021"
-description = "pnos 系统级标准库 - 统一错误码、响应格式、应用模型、容器配置、配置加载、结构化日志"
+description = "pnos 系统级标准库 - 统一响应格式、错误码、应用模型、注册发现、健康检查、事件协议"
 license = "MIT"
 repository = "https://github.com/PandaNetOS/pnos-spec"
 
@@ -13,6 +13,6 @@ serde_yaml = "0.9"
 thiserror = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
-time = { version = "0.3", features = ["serde", "macros", "formatting"] }
+time = { version = "0.3", features = ["serde", "macros", "formatting", "parsing"] }
 uuid = { version = "1", features = ["v4"] }
 anyhow = "1"

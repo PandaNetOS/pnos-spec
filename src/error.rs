@@ -18,19 +18,34 @@ pub enum ErrorCode {
     InternalError = 7,
     ServiceUnavailable = 8,
 
-    // 容器 1000-1999
-    ContainerNotFound = 1000,
-    ContainerAlreadyRunning = 1001,
-    ContainerNotRunning = 1002,
-    ImagePullFailed = 1003,
-    PortConflict = 1004,
+    // 应用管理 1000-1999
+    AppNotFound = 1000,
+    AppAlreadyInstalled = 1001,
+    AppNotInstalled = 1002,
+    AppAlreadyRunning = 1003,
+    AppNotRunning = 1004,
+    AppStartFailed = 1005,
+    AppStopFailed = 1006,
+    AppManifestInvalid = 1007,
+    AppDependencyMissing = 1008,
+    PortConflict = 1009,
 
-    // 应用商店 2000-2999
-    AppNotFound = 2000,
-    AppAlreadyInstalled = 2001,
-    AppNotInstalled = 2002,
-    StoreSourceUnreachable = 2003,
-    AppManifestInvalid = 2004,
+    // 应用注册与发现 2000-2099
+    AppNotRegistered = 2000,
+    AppAlreadyRegistered = 2001,
+    HeartbeatTimeout = 2002,
+    TokenInvalid = 2003,
+    TokenExpired = 2004,
+
+    // 二进制部署 2100-2199
+    BinaryDownloadFailed = 2100,
+    BinaryChecksumMismatch = 2101,
+    BinaryExtractFailed = 2102,
+    BinaryNotFound = 2103,
+
+    // 商店 2200-2299
+    StoreSourceUnreachable = 2200,
+    StoreAppNotFound = 2201,
 
     // 文件 3000-3999
     FileNotFound = 3000,
@@ -62,16 +77,27 @@ impl ErrorCode {
             ErrorCode::Forbidden => "禁止访问",
             ErrorCode::InternalError => "内部错误",
             ErrorCode::ServiceUnavailable => "服务不可用",
-            ErrorCode::ContainerNotFound => "容器不存在",
-            ErrorCode::ContainerAlreadyRunning => "容器已在运行",
-            ErrorCode::ContainerNotRunning => "容器未运行",
-            ErrorCode::ImagePullFailed => "镜像拉取失败",
-            ErrorCode::PortConflict => "端口冲突",
             ErrorCode::AppNotFound => "应用不存在",
             ErrorCode::AppAlreadyInstalled => "应用已安装",
             ErrorCode::AppNotInstalled => "应用未安装",
-            ErrorCode::StoreSourceUnreachable => "商店源不可达",
+            ErrorCode::AppAlreadyRunning => "应用已在运行",
+            ErrorCode::AppNotRunning => "应用未运行",
+            ErrorCode::AppStartFailed => "应用启动失败",
+            ErrorCode::AppStopFailed => "应用停止失败",
             ErrorCode::AppManifestInvalid => "应用描述文件无效",
+            ErrorCode::AppDependencyMissing => "应用依赖缺失",
+            ErrorCode::PortConflict => "端口冲突",
+            ErrorCode::AppNotRegistered => "应用未注册",
+            ErrorCode::AppAlreadyRegistered => "应用已注册",
+            ErrorCode::HeartbeatTimeout => "心跳超时",
+            ErrorCode::TokenInvalid => "Token 无效",
+            ErrorCode::TokenExpired => "Token 已过期",
+            ErrorCode::BinaryDownloadFailed => "二进制下载失败",
+            ErrorCode::BinaryChecksumMismatch => "校验和不匹配",
+            ErrorCode::BinaryExtractFailed => "解压失败",
+            ErrorCode::BinaryNotFound => "二进制文件不存在",
+            ErrorCode::StoreSourceUnreachable => "商店源不可达",
+            ErrorCode::StoreAppNotFound => "商店应用不存在",
             ErrorCode::FileNotFound => "文件不存在",
             ErrorCode::FileAlreadyExists => "文件已存在",
             ErrorCode::PermissionDenied => "权限不足",
@@ -86,19 +112,24 @@ impl ErrorCode {
         match self {
             ErrorCode::Success => 200,
             ErrorCode::InvalidParameter | ErrorCode::AppManifestInvalid => 400,
-            ErrorCode::Unauthorized => 401,
+            ErrorCode::Unauthorized | ErrorCode::TokenInvalid | ErrorCode::TokenExpired => 401,
             ErrorCode::Forbidden | ErrorCode::PermissionDenied => 403,
             ErrorCode::NotFound
-            | ErrorCode::ContainerNotFound
             | ErrorCode::AppNotFound
-            | ErrorCode::FileNotFound => 404,
+            | ErrorCode::StoreAppNotFound
+            | ErrorCode::FileNotFound
+            | ErrorCode::AppNotRegistered
+            | ErrorCode::BinaryNotFound => 404,
             ErrorCode::AlreadyExists
             | ErrorCode::AppAlreadyInstalled
+            | ErrorCode::AppAlreadyRegistered
             | ErrorCode::FileAlreadyExists
-            | ErrorCode::ContainerAlreadyRunning
+            | ErrorCode::AppAlreadyRunning
             | ErrorCode::PortConflict => 409,
-            ErrorCode::ContainerNotRunning | ErrorCode::AppNotInstalled => 409,
-            ErrorCode::ServiceUnavailable | ErrorCode::StoreSourceUnreachable => 503,
+            ErrorCode::AppNotRunning | ErrorCode::AppNotInstalled => 409,
+            ErrorCode::ServiceUnavailable
+            | ErrorCode::StoreSourceUnreachable
+            | ErrorCode::HeartbeatTimeout => 503,
             _ => 500,
         }
     }
@@ -112,16 +143,14 @@ pub enum PnosError {
         code: ErrorCode,
         message: String,
     },
-
     #[error("IO 错误: {0}")]
     Io(#[from] std::io::Error),
-
     #[error("JSON 序列化错误: {0}")]
     Json(#[from] serde_json::Error),
-
+    #[error("YAML 序列化错误: {0}")]
+    Yaml(#[from] serde_yaml::Error),
     #[error("配置错误: {0}")]
     Config(String),
-
     #[error("外部错误: {0}")]
     External(String),
 }
@@ -146,6 +175,7 @@ impl PnosError {
             PnosError::Business { message, .. } => message.clone(),
             PnosError::Io(e) => e.to_string(),
             PnosError::Json(e) => e.to_string(),
+            PnosError::Yaml(e) => e.to_string(),
             PnosError::Config(e) => e.clone(),
             PnosError::External(e) => e.clone(),
         }
