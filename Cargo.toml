@@ -1,8 +1,8 @@
 [package]
 name = "pnos"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
-description = "pnos 系统级标准库 - 统一响应格式、错误码、应用模型、注册发现、健康检查、事件协议"
+description = "pnos 统一通信标准库 - 组件注册发现、服务发现、事件协议、任务调度、能力自描述、统一错误码与响应格式"
 license = "MIT"
 repository = "https://github.com/PandaNetOS/pnos-spec"
 
@@ -14,5 +14,6 @@ thiserror = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 time = { version = "0.3", features = ["serde", "macros", "formatting", "parsing"] }
-uuid = { version = "1", features = ["v4"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
 anyhow = "1"

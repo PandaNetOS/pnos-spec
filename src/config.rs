@@ -69,8 +69,8 @@ impl PnosConfig {
     pub fn load() -> Result<Self, crate::error::PnosError> {
         let mut config = PnosConfig::default();
 
-        let config_path = std::env::var("PNOS_CONFIG")
-            .unwrap_or_else(|_| "/etc/pnos/config.yml".to_string());
+        let config_path =
+            std::env::var("PNOS_CONFIG").unwrap_or_else(|_| "/etc/pnos/config.yml".to_string());
         if let Ok(content) = std::fs::read_to_string(&config_path) {
             if let Ok(file_config) = serde_yaml::from_str::<PnosConfig>(&content) {
                 config = file_config;

@@ -40,8 +40,7 @@ impl ProxyRule {
     /// 生成完整的目标 URL
     pub fn target_url(&self, path: &str) -> String {
         let path = if self.strip_prefix {
-            path.strip_prefix(&self.path_prefix)
-                .unwrap_or(path)
+            path.strip_prefix(&self.path_prefix).unwrap_or(path)
         } else {
             path
         };

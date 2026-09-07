@@ -26,7 +26,10 @@ pub fn parse_bytes(s: &str) -> Result<u64, String> {
 
     for (unit, mult) in &multipliers {
         if let Some(num_str) = s.strip_suffix(unit) {
-            let num: f64 = num_str.trim().parse().map_err(|_| format!("无效数字: {}", num_str))?;
+            let num: f64 = num_str
+                .trim()
+                .parse()
+                .map_err(|_| format!("无效数字: {}", num_str))?;
             return Ok((num * *mult as f64) as u64);
         }
     }
@@ -42,9 +45,10 @@ pub fn is_valid_uuid(s: &str) -> bool {
         return false;
     }
     let lengths = [8, 4, 4, 4, 12];
-    parts.iter().zip(lengths.iter()).all(|(p, &len)| {
-        p.len() == len && p.chars().all(|c| c.is_ascii_hexdigit())
-    })
+    parts
+        .iter()
+        .zip(lengths.iter())
+        .all(|(p, &len)| p.len() == len && p.chars().all(|c| c.is_ascii_hexdigit()))
 }
 
 /// 生成容器名后缀（短 ID）
